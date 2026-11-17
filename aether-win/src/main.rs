@@ -12,7 +12,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 
 use egui::{Color32, RichText, TextureHandle, Vec2};
 
-const PINK: Color32 = Color32::from_rgb(238, 77, 139);
+const ACCENT: Color32 = Color32::from_rgb(137, 180, 250);
 const TABS: [&str; 7] = ["Editor", "Wallhaven", "GitHub", "Local", "Favorites", "Blueprints", "Omarchy"];
 const SORTS: [(&str, &str); 6] = [
     ("toplist", "Top List"),
@@ -55,9 +55,13 @@ fn style_aether(ctx: &egui::Context) {
     visuals.faint_bg_color = Color32::from_rgb(32, 32, 38);
     visuals.widgets.inactive.bg_fill = Color32::from_rgb(36, 36, 42);
     visuals.widgets.hovered.bg_fill = Color32::from_rgb(52, 36, 46);
-    visuals.widgets.active.bg_fill = PINK;
-    visuals.selection.bg_fill = PINK;
-    visuals.hyperlink_color = PINK;
+    visuals.widgets.active.bg_fill = ACCENT;
+    visuals.selection.bg_fill = ACCENT;
+    visuals.hyperlink_color = ACCENT;
+    visuals.widgets.noninteractive.rounding = egui::Rounding::ZERO;
+    visuals.widgets.inactive.rounding = egui::Rounding::ZERO;
+    visuals.widgets.hovered.rounding = egui::Rounding::ZERO;
+    visuals.widgets.active.rounding = egui::Rounding::ZERO;
     ctx.set_visuals(visuals);
 }
 
@@ -263,7 +267,7 @@ impl eframe::App for Aether {
                 for (index, label) in TABS.iter().enumerate() {
                     let selected = self.tab == index;
                     let text = if selected {
-                        RichText::new(*label).color(PINK).strong()
+                        RichText::new(*label).color(ACCENT).strong()
                     } else {
                         RichText::new(*label).color(Color32::from_rgb(180, 180, 188))
                     };
@@ -321,22 +325,24 @@ impl Aether {
                         }
                     }
                 });
-            let search = egui::Button::new(RichText::new("Search").color(Color32::WHITE).strong()).fill(PINK);
+            let search = egui::Button::new(RichText::new("Search").color(Color32::from_rgb(17, 17, 22)).strong()).fill(ACCENT);
             if ui.add(search).clicked() {
                 self.page = 1;
                 self.search();
             }
         });
         ui.add_space(6.0);
+        let mut filters_changed = false;
         ui.horizontal(|ui| {
-            chip(ui, "General", &mut self.general, || {});
-            chip(ui, "Anime", &mut self.anime, || {});
-            chip(ui, "People", &mut self.people, || {});
+            filters_changed |= chip(ui, "General", &mut self.general, ACCENT);
+            filters_changed |= chip(ui, "Anime", &mut self.anime, ACCENT);
+            filters_changed |= chip(ui, "People", &mut self.people, ACCENT);
             ui.separator();
-            chip(ui, "SFW", &mut self.sfw, || {});
-            chip(ui, "Sketchy", &mut self.sketchy, || {});
-            chip(ui, "NSFW", &mut self.nsfw, || {});
+            filters_changed |= chip(ui, "SFW", &mut self.sfw, Color32::from_rgb(166, 227, 161));
+            filters_changed |= chip(ui, "Sketchy", &mut self.sketchy, Color32::from_rgb(249, 226, 175));
+            filters_changed |= chip(ui, "NSFW", &mut self.nsfw, Color32::from_rgb(243, 139, 168));
             ui.separator();
+            let before = self.atleast;
             egui::ComboBox::from_id_salt("res")
                 .selected_text(RESOLUTIONS[self.atleast].1)
                 .width(130.0)
@@ -345,10 +351,7 @@ impl Aether {
                         ui.selectable_value(&mut self.atleast, index, *label);
                     }
                 });
-            if ui.button("Apply filters").clicked() {
-                self.page = 1;
-                self.search();
-            }
+            filters_changed |= self.atleast != before;
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 let count = if self.tab == 4 {
                     format!("{} favorites", self.favorites.len())
@@ -360,6 +363,10 @@ impl Aether {
                 ui.label(RichText::new(count).color(Color32::from_rgb(160, 160, 168)));
             });
         });
+        if filters_changed {
+            self.page = 1;
+            self.search();
+        }
         if self.nsfw && self.api_key.trim().is_empty() {
             ui.label(
                 RichText::new("NSFW on Wallhaven needs an API key.")
@@ -406,7 +413,7 @@ impl Aether {
                         ui.allocate_ui(Vec2::new(card_w, card_w / ratio.max(0.4)), |ui| {
                             let frame = egui::Frame::none()
                                 .fill(Color32::from_rgb(28, 28, 32))
-                                .rounding(6.0)
+                                .rounding(0.0)
                                 .show(ui, |ui| {
                                     let height = (card_w / ratio.max(0.4)).clamp(90.0, 360.0);
                                     if let Some(texture) = self.textures.get(&id) {
@@ -490,16 +497,20 @@ impl Wallpaper {
     }
 }
 
-fn chip(ui: &mut egui::Ui, label: &str, on: &mut bool, mut after: impl FnMut()) {
+fn chip(ui: &mut egui::Ui, label: &str, on: &mut bool, on_color: Color32) -> bool {
     let text = if *on {
-        RichText::new(label).color(Color32::WHITE).strong()
+        RichText::new(label).color(Color32::from_rgb(17, 17, 22)).strong()
     } else {
         RichText::new(label).color(Color32::from_rgb(170, 170, 178))
     };
-    let button = egui::Button::new(text).fill(if *on { PINK } else { Color32::from_rgb(32, 32, 38) }).rounding(8.0);
+    let button = egui::Button::new(text)
+        .fill(if *on { on_color } else { Color32::from_rgb(22, 22, 27) })
+        .rounding(0.0);
     if ui.add(button).clicked() {
         *on = !*on;
-        after();
+        true
+    } else {
+        false
     }
 }
 
@@ -524,13 +535,31 @@ fn encode(value: &str) -> String {
 }
 
 fn fetch_search(generation: u64, url: &str) -> SearchDone {
-    match ureq::get(url).call() {
+    match client().get(url).call() {
         Ok(response) => match response.into_json::<serde_json::Value>() {
             Ok(json) => parse_search(generation, json),
-            Err(error) => empty_search(generation, Some(error.to_string())),
+            Err(error) => empty_search(generation, Some(redact(&error.to_string()))),
         },
-        Err(error) => empty_search(generation, Some(error.to_string())),
+        Err(error) => empty_search(generation, Some(redact(&error.to_string()))),
     }
+}
+
+fn client() -> ureq::Agent {
+    ureq::AgentBuilder::new().user_agent("Aether/1.0 (Windows)").build()
+}
+
+fn redact(text: &str) -> String {
+    let mut result = text.to_string();
+    let key = "apikey=";
+    while let Some(start) = result.find(key) {
+        let value_start = start + key.len();
+        let value_end = result[value_start..]
+            .find(['&', ' ', '"', '\n'])
+            .map(|index| value_start + index)
+            .unwrap_or(result.len());
+        result.replace_range(value_start..value_end, "***");
+    }
+    result
 }
 
 fn parse_search(generation: u64, json: serde_json::Value) -> SearchDone {
@@ -583,7 +612,7 @@ fn download(url: &str, cap: u64) -> Result<Vec<u8>, String> {
     if !url.starts_with("https://w.wallhaven.cc/") && !url.starts_with("https://th.wallhaven.cc/") {
         return Err("Wallpaper host is not Wallhaven.".into());
     }
-    let response = ureq::get(url).call().map_err(|error| error.to_string())?;
+    let response = client().get(url).call().map_err(|error| redact(&error.to_string()))?;
     let mut bytes = Vec::new();
     response
         .into_reader()
