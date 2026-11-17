@@ -49,7 +49,7 @@ npm run dist:win
 cargo build --release --manifest-path aether-win/Cargo.toml
 ```
 
-Готовый файл: `aether-win/target/release/aether.exe` на Windows. С Linux его же собирает `cargo build --release --target x86_64-pc-windows-gnu`.
+Готовый файл лежит в репозитории: `release/aether.exe`. Собрать заново на Windows: `aether-win/target/release/aether.exe`. С Linux ту же сборку даёт `cargo build --release --target x86_64-pc-windows-gnu`.
 
 На GitHub оба exe собирает workflow `.github/workflows/release.yml`, когда публикуется тег `v*`.
 
