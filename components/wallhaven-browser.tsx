@@ -35,9 +35,10 @@ import { cn } from "@/lib/utils";
 
 type WallhavenBrowserProps = {
   onPick: (item: WallhavenWallpaper) => void;
+  onlyFavorites?: boolean;
 };
 
-export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
+export function WallhavenBrowser({ onPick, onlyFavorites = false }: WallhavenBrowserProps) {
   const [query, setQuery] = useState("");
   const [general, setGeneral] = useState(true);
   const [anime, setAnime] = useState(true);
@@ -48,7 +49,7 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
   const [sorting, setSorting] = useState("toplist");
   const [atleast, setAtleast] = useState("1920x1080");
   const [page, setPage] = useState(1);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(onlyFavorites);
   const [data, setData] = useState<WallhavenPage | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -107,9 +108,9 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
   const favoriteIds = new Set(favorites.map((item) => item.id));
   const items = favoritesOnly ? favorites : (data?.items ?? []);
   const totalLabel = favoritesOnly
-    ? `${favorites.length.toLocaleString("ru-RU")} в избранном`
+    ? `${favorites.length.toLocaleString("en-US")} favorites`
     : data
-      ? `${data.total.toLocaleString("ru-RU")} обоев`
+      ? `${data.total.toLocaleString("en-US")} results`
       : "";
 
   return (
@@ -117,17 +118,17 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
       <div className="flex flex-wrap items-center gap-2">
         <Input
           value={query}
-          placeholder="Поиск: mountain sunset, #nature, id:…"
-          aria-label="Поиск Wallhaven"
+          placeholder="Search wallpapers…"
+          aria-label="Search wallpapers"
           className="min-w-48 flex-1"
           onChange={(event) => {
-            setFavoritesOnly(false);
+            if (!onlyFavorites) setFavoritesOnly(false);
             setQuery(event.target.value);
             setPage(1);
           }}
         />
         <select
-          aria-label="Сортировка"
+          aria-label="Sorting"
           value={sorting}
           className="h-8 rounded-lg border bg-background px-2 text-xs"
           onChange={(event) => {
@@ -141,11 +142,14 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
             </option>
           ))}
         </select>
+        <Button type="button" onClick={() => setPage(1)}>
+          Search
+        </Button>
         <Button
           type="button"
           size="icon"
           variant={apiKey ? "secondary" : "outline"}
-          aria-label="Ключ API Wallhaven"
+          aria-label="Wallhaven API key"
           onClick={() => {
             setDraftKey(apiKey);
             setSettingsOpen(true);
@@ -179,31 +183,35 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
             </option>
           ))}
         </select>
-        <Filter on={favoritesOnly} label="Избранное" onClick={() => setFavoritesOnly((value) => !value)} />
-        <span className="ml-auto text-xs text-muted-foreground">{loading && !favoritesOnly ? "Ищу…" : totalLabel}</span>
+        {onlyFavorites ? null : (
+          <Filter on={favoritesOnly} label="Favorites" onClick={() => setFavoritesOnly((value) => !value)} />
+        )}
+        <span className="ml-auto text-xs text-muted-foreground">
+          {loading && !favoritesOnly ? "Searching…" : totalLabel}
+        </span>
       </div>
 
       {nsfw && !apiKey ? (
         <p className="text-xs text-muted-foreground">
-          NSFW на Wallhaven открывается только с API-ключом. Ключ задаётся шестерёнкой и остаётся в этом браузере.
+          NSFW on Wallhaven needs an API key. The gear stores it in this browser only.
         </p>
       ) : null}
       {error && !favoritesOnly ? (
         <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-3 text-sm">{error}</p>
       ) : null}
       {loading && !data && !favoritesOnly ? (
-        <p className="px-1 py-8 text-sm text-muted-foreground">Загружаю ленту Wallhaven…</p>
+        <p className="px-1 py-8 text-sm text-muted-foreground">Loading Wallhaven…</p>
       ) : null}
       {!loading && items.length === 0 ? (
         <p className="px-1 py-8 text-sm text-muted-foreground">
-          {favoritesOnly ? "В избранном пока пусто. Сердечко на карточке сохраняет обои." : "По этому запросу обоев нет."}
+          {favoritesOnly ? "No favorites yet. Use the heart on a wallpaper." : "No wallpapers for this search."}
         </p>
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="columns-2 gap-2 sm:columns-3 lg:columns-4 xl:columns-5">
           {items.map((item) => (
-            <div key={item.id} className="group relative overflow-hidden rounded-md bg-muted ring-1 ring-white/10">
+            <div key={item.id} className="group relative mb-2 break-inside-avoid overflow-hidden rounded-md bg-muted ring-1 ring-white/10">
               <button type="button" className="block w-full text-left" onClick={() => onPick(item)}>
                 <Image
                   src={item.thumb}
@@ -238,14 +246,14 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
       {data && !favoritesOnly && data.pages > 1 ? (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            Страница {data.page} из {data.pages}
+            Page {data.page} of {data.pages}
           </span>
           <div className="flex gap-2">
             <Button type="button" size="sm" variant="outline" disabled={data.page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>
-              Назад
+              Back
             </Button>
             <Button type="button" size="sm" variant="outline" disabled={data.page >= data.pages} onClick={() => setPage((current) => current + 1)}>
-              Дальше
+              Next
             </Button>
           </div>
         </div>
@@ -295,7 +303,7 @@ export function WallhavenBrowser({ onPick }: WallhavenBrowserProps) {
 
 function Filter({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
-    <Button type="button" size="xs" variant={on ? "secondary" : "outline"} onClick={onClick}>
+    <Button type="button" size="xs" variant={on ? "default" : "ghost"} className={cn(!on && "text-muted-foreground")} onClick={onClick}>
       {label}
     </Button>
   );

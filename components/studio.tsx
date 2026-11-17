@@ -107,7 +107,9 @@ export function Studio() {
   const blueprints = useSyncExternalStore(subscribeBlueprints, readBlueprints, serverBlueprints);
   const [saveOpen, setSaveOpen] = useState(false);
   const [draftName, setDraftName] = useState("");
-  const [view, setView] = useState<"editor" | "wallhaven">("editor");
+  const [view, setView] = useState<
+    "editor" | "wallhaven" | "github" | "local" | "favorites" | "blueprints" | "omarchy"
+  >("wallhaven");
 
   useEffect(() => {
     let cancel = false;
@@ -350,24 +352,35 @@ export function Studio() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      <header className="flex shrink-0 items-center gap-3 border-b px-3 py-2 sm:px-4">
-        <div className="flex items-center gap-2">
+      <header className="flex shrink-0 items-center gap-1 border-b px-3 py-2 sm:gap-2 sm:px-4">
+        <div className="mr-2 flex items-center gap-2">
           <Mark />
-          <div className="leading-tight">
-            <div className="font-display text-lg tracking-tight">Aether</div>
-            <div className="hidden text-[11px] text-muted-foreground sm:block">
-              Тема Windows из обоев
-            </div>
-          </div>
+          <div className="font-display text-sm tracking-[0.18em]">AETHER</div>
         </div>
-        <div className="flex rounded-lg bg-muted p-0.5">
-          <Button type="button" size="sm" variant={view === "editor" ? "secondary" : "ghost"} onClick={() => setView("editor")}>
-            Редактор
-          </Button>
-          <Button type="button" size="sm" variant={view === "wallhaven" ? "secondary" : "ghost"} onClick={() => setView("wallhaven")}>
-            Wallhaven
-          </Button>
-        </div>
+        <nav className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto">
+          {(
+            [
+              ["editor", "Editor"],
+              ["wallhaven", "Wallhaven"],
+              ["github", "GitHub"],
+              ["local", "Local"],
+              ["favorites", "Favorites"],
+              ["blueprints", "Blueprints"],
+              ["omarchy", "Omarchy"],
+            ] as const
+          ).map(([id, label]) => (
+            <Button
+              key={id}
+              type="button"
+              size="sm"
+              variant={view === id ? "secondary" : "ghost"}
+              className={cn(view === id && "text-primary")}
+              onClick={() => setView(id)}
+            >
+              {label}
+            </Button>
+          ))}
+        </nav>
         {view === "editor" ? (
         <Input
           value={themeName}
@@ -423,8 +436,94 @@ export function Studio() {
         </div>
       </header>
 
-      {view === "wallhaven" ? (
-        <WallhavenBrowser onPick={pickWallhaven} />
+      {view === "wallhaven" || view === "favorites" ? (
+        <WallhavenBrowser key={view} onPick={pickWallhaven} onlyFavorites={view === "favorites"} />
+      ) : view === "local" ? (
+        <div className="min-h-0 flex-1 overflow-auto p-4">
+          <div className="mb-3 text-sm text-muted-foreground">Local wallpapers. Drop your own file or pick a starter.</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {WALLPAPERS.map((wallpaper) => (
+              <button
+                key={wallpaper.id}
+                type="button"
+                onClick={() => {
+                  chooseSample(wallpaper.id);
+                  setView("editor");
+                }}
+                className="overflow-hidden rounded-lg text-left ring-1 ring-white/10 hover:ring-primary"
+              >
+                <Image src={wallpaper.src} alt="" width={320} height={200} unoptimized className="aspect-video h-auto w-full object-cover" />
+                <span className="block truncate px-2 py-1 text-xs">{wallpaper.name}</span>
+              </button>
+            ))}
+          </div>
+          <Button type="button" className="mt-4" onClick={() => fileRef.current?.click()}>
+            <ImagePlus />
+            Choose file
+          </Button>
+        </div>
+      ) : view === "blueprints" ? (
+        <div className="min-h-0 flex-1 space-y-2 overflow-auto p-4">
+          {blueprints.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No blueprints yet. Save one from the editor.</p>
+          ) : (
+            blueprints.map((blueprint) => (
+              <button
+                key={blueprint.id}
+                type="button"
+                className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-muted"
+                onClick={() => {
+                  applyBlueprint(blueprint);
+                  setView("editor");
+                }}
+              >
+                <span className="flex-1 truncate text-sm">{blueprint.name}</span>
+                <span className="flex gap-0.5">
+                  {blueprint.colors.slice(0, 8).map((color, index) => (
+                    <span key={`${blueprint.id}-${index}`} className="size-3 rounded-full" style={{ background: color }} />
+                  ))}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      ) : view === "github" ? (
+        <div className="min-h-0 flex-1 space-y-3 overflow-auto p-4">
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Export the current palette for Windows Terminal, VS Code, and the Windows theme file.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" onClick={downloadTerminal}>Windows Terminal</Button>
+            <Button type="button" variant="secondary" onClick={downloadCode}>VS Code</Button>
+            <Button type="button" variant="secondary" onClick={downloadThemeFile}>.theme</Button>
+          </div>
+        </div>
+      ) : view === "omarchy" ? (
+        <div className="min-h-0 flex-1 overflow-auto p-4">
+          <p className="mb-3 max-w-xl text-sm text-muted-foreground">
+            Wallpapers come from Wallhaven. These are ready-made color themes.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {LIBRARY.map((theme) => (
+              <button
+                key={theme.id}
+                type="button"
+                onClick={() => {
+                  chooseLibrary(theme.id);
+                  setView("editor");
+                }}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-left ring-1 ring-white/10 hover:ring-primary"
+              >
+                <span className="flex-1 truncate text-sm">{theme.name}</span>
+                <span className="flex gap-0.5">
+                  {theme.colors.slice(0, 8).map((color, index) => (
+                    <span key={`${theme.id}-om-${index}`} className="size-3 rounded-full" style={{ background: color }} />
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       ) : (
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto p-3 lg:grid-cols-[280px_minmax(0,1fr)_340px] lg:overflow-hidden">
         <aside className="space-y-5 lg:overflow-y-auto lg:pr-1">

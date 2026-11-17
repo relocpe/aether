@@ -32,7 +32,7 @@ export const RESOLUTIONS = [
   { id: "1920x1080", label: "1920×1080+" },
   { id: "2560x1440", label: "2560×1440+" },
   { id: "3840x2160", label: "3840×2160+" },
-  { id: "", label: "Любое" },
+  { id: "", label: "Any" },
 ] as const;
 
 export function formatBytes(bytes: number) {

@@ -35,13 +35,23 @@ npm run dev
 
 Приложение откроется на порту 4177.
 
-Windows-сборка — один переносимый exe:
+Windows-сборка студии — один переносимый exe:
 
 ```bash
 npm run dist:win
 ```
 
-Файл появляется в `dist/`. Подпись не требуется. На GitHub тот же exe собирает workflow `.github/workflows/release.yml`, когда публикуется тег `v*`.
+Файл появляется в `dist/`. Подпись не требуется.
+
+Отдельное приложение на Rust, `aether.exe`, открывается сразу на вкладке Wallhaven: поиск, Top List, розовая кнопка Search, чипы General / Anime / People и SFW / Sketchy / NSFW, сетка с разрешением и размером файла. Клик по карточке скачивает обои и ставит их на рабочий стол Windows, акцент берётся с картинки.
+
+```bash
+cargo build --release --manifest-path aether-win/Cargo.toml
+```
+
+Готовый файл: `aether-win/target/release/aether.exe` на Windows. С Linux его же собирает `cargo build --release --target x86_64-pc-windows-gnu`.
+
+На GitHub оба exe собирает workflow `.github/workflows/release.yml`, когда публикуется тег `v*`.
 
 ```bash
 npm run check

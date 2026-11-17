@@ -1,0 +1,28 @@
+[package]
+name = "aether"
+version = "1.0.0"
+edition = "2021"
+description = "Aether for Windows: Wallhaven wallpapers and the accent color"
+
+[dependencies]
+eframe = "0.29"
+egui = "0.29"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ureq = { version = "2.12", default-features = false, features = ["json", "native-tls", "gzip"] }
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Registry",
+  "Win32_UI_WindowsAndMessaging",
+] }
+
+[profile.release]
+lto = false
+codegen-units = 8
+opt-level = 3
+strip = true
+panic = "abort"
