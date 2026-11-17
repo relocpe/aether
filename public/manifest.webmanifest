@@ -1,0 +1,18 @@
+{
+  "name": "Aether",
+  "short_name": "Aether",
+  "description": "Тема Windows из обоев",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14120f",
+  "theme_color": "#14120f",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
