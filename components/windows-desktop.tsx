@@ -70,7 +70,6 @@ export function WindowsDesktop({
   const green = colors[2] ?? "#9ece6a";
   const yellow = colors[3] ?? "#e0af68";
   const blue = colors[4] ?? "#7aa2f7";
-  const magenta = colors[5] ?? "#bb9af7";
   const cyan = colors[6] ?? "#7dcfff";
   const muted = colors[8] ?? "#414868";
   const titleBg = titleAccent ? accent : light ? "#f3f3f3" : "#1f1f1f";
@@ -208,10 +207,7 @@ export function WindowsDesktop({
           <p>
             <span style={{ color: green }}>новый</span> wallpaper.jpg
           </p>
-          <p>
-            <span style={{ color: red }}>ошибка</span>{" "}
-            <span style={{ color: magenta }}>&quot;{themeName}&quot;</span> ещё не в репозитории
-          </p>
+          <p style={{ color: muted }}>ветка main</p>
           <div className="flex gap-[0.45cqw] pt-[0.8cqw]">
             {colors.map((color, index) => (
               <span

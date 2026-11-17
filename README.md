@@ -1,60 +1,43 @@
 # Aether для Windows
 
-Студия тем: берёт цвета с обоев и собирает из них цельную тему Windows. Это самостоятельная версия идеи [Aether](https://github.com/bjarneo/aether) — там Linux и Omarchy, здесь рабочий стол Windows, терминал и редактор.
+Обои с [Wallhaven](https://wallhaven.cc) и тема Windows, собранная из их цветов. Это Windows-версия [Aether](https://github.com/omacom/aether): там Linux и Omarchy, здесь рабочий стол, акцент, Windows Terminal и VS Code.
 
-## Как пользоваться
+![Поиск обоев на Wallhaven](docs/images/wallhaven.png)
 
-1. Вкладка **Wallhaven** берёт обои с [wallhaven.cc](https://wallhaven.cc): поиск, General / Anime / People, SFW / Sketchy / NSFW, разрешение и сортировку Top List. Ключ API необязателен. Его вставляют шестерёнкой: он берётся в настройках аккаунта Wallhaven и остаётся только в этом браузере. Без ключа хватает обычного поиска. NSFW на стороне Wallhaven открывается с ключом. Клик по картинке переносит её в редактор и снимает палитру. Восемь локальных набросков работают без сети, свой файл можно перетащить на превью.
-2. Стиль палитры — обычный, монохром, аналоговый, пастель, Material, цветной, приглушённый или яркий. Светлая и тёмная тема меняют фон и текст местами.
-3. Слева в превью видно, как это ляжет на Windows 11: панель задач, проводник и Windows Terminal.
-4. Клик по цвету назначает акцент. Плашка цвета открывает пипетку. Ползунки тона крутят уже собранную палитру, правка обоев — саму картинку до извлечения.
-5. **Скрипт для Windows** скачивает `aether-theme.ps1`. На компьютере с Windows:
+## Скачать
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\aether-theme.ps1
-```
+Готовое приложение: [aether.exe](https://github.com/relocpe/aether/releases/latest/download/aether.exe).
 
-Скрипт пишет только в твою учётную запись: кладёт обои в `Изображения\Aether`, ставит их на рабочий стол, красит акцент и переключает светлый или тёмный режим. Права администратора не нужны. Если панель задач не обновилась, выйди из системы и зайди снова.
+Оно открывается на Wallhaven. В поиске есть категории General, Anime и People, чистота SFW / Sketchy / NSFW, сортировка и минимальное разрешение. Клик по карточке скачивает обои, ставит их на рабочий стол и записывает акцент в текущую учётную запись. Права администратора не нужны.
 
-Отдельные файлы:
+Ключ API необязателен. Без него хватает обычного поиска, около 45 запросов в минуту. NSFW на Wallhaven открывается с ключом из настроек аккаунта. Ключ остаётся только на этом компьютере.
 
-- `aether-terminal.json` — схема для Windows Terminal. Её добавляют в массив `schemes` в `settings.json` и выбирают в профиле.
-- `aether-vscode.json` — фрагмент для `settings.json` VS Code.
-- `aether.theme` — файл темы Windows. Обои он ищет там, куда их уже положил скрипт.
+## Студия
 
-Чертежи хранятся в браузере, на сервер ничего не уходит. Картинка обрабатывается локально.
-
-## Запуск
-
-Нужен Node.js 20.9+.
+Студия в браузере снимает с картинки палитру из 16 цветов и показывает, как она ляжет на Windows 11.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Приложение откроется на порту 4177.
+Сервер слушает порт 4177.
 
-Windows-сборка студии — один переносимый exe:
+![Редактор палитры и превью Windows](docs/images/editor.png)
+
+Клик по цвету назначает акцент. Светлая и тёмная тема меняют фон и текст местами. **Скрипт для Windows** скачивает `aether-theme.ps1`: кладёт обои в `Изображения\Aether`, ставит их на стол и переключает светлый или тёмный режим.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\aether-theme.ps1
+```
+
+Рядом можно сохранить схему Windows Terminal, фрагмент `settings.json` для VS Code и файл `.theme`. Чертежи хранятся в браузере.
+
+## Сборка
 
 ```bash
 npm run dist:win
-```
-
-Файл появляется в `dist/`. Подпись не требуется.
-
-Отдельное приложение на Rust, `aether.exe`, открывается сразу на вкладке Wallhaven: поиск, Top List, розовая кнопка Search, чипы General / Anime / People и SFW / Sketchy / NSFW, сетка с разрешением и размером файла. Клик по карточке скачивает обои и ставит их на рабочий стол Windows, акцент берётся с картинки.
-
-```bash
 cargo build --release --manifest-path aether-win/Cargo.toml
 ```
 
-Готовый файл лежит в репозитории: `release/aether.exe`. Собрать заново на Windows: `aether-win/target/release/aether.exe`. С Linux ту же сборку даёт `cargo build --release --target x86_64-pc-windows-gnu`.
-
-На GitHub оба exe собирает workflow `.github/workflows/release.yml`, когда публикуется тег `v*`.
-
-```bash
-npm run check
-npm run lint
-npm run build
-```
+`npm run dist:win` собирает студию в переносимый exe. Команда Cargo собирает `aether.exe`. С Linux ту же Windows-сборку даёт `cargo build --release --target x86_64-pc-windows-gnu`. Тег `v*` запускает обе сборки в GitHub Actions.

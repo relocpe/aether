@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import {
   RESOLUTIONS,
   SORTS,
-  aspectRatio,
   formatBytes,
   readFavorites,
   readWallhavenKey,
@@ -209,9 +208,9 @@ export function WallhavenBrowser({ onPick, onlyFavorites = false }: WallhavenBro
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-        <div className="columns-2 gap-2 sm:columns-3 lg:columns-4 xl:columns-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {items.map((item) => (
-            <div key={item.id} className="group relative mb-2 break-inside-avoid overflow-hidden rounded-md bg-muted ring-1 ring-white/10">
+            <div key={item.id} className="group relative overflow-hidden rounded-md bg-muted ring-1 ring-white/10">
               <button type="button" className="block w-full text-left" onClick={() => onPick(item)}>
                 <Image
                   src={item.thumb}
@@ -219,8 +218,7 @@ export function WallhavenBrowser({ onPick, onlyFavorites = false }: WallhavenBro
                   width={480}
                   height={270}
                   unoptimized
-                  className="h-auto w-full object-cover"
-                  style={{ aspectRatio: aspectRatio(item.resolution) }}
+                  className="aspect-video h-auto w-full object-cover"
                 />
                 <span className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-black/80 to-transparent px-1.5 py-1 text-[10px] text-white">
                   <span>{item.resolution}</span>
@@ -244,7 +242,7 @@ export function WallhavenBrowser({ onPick, onlyFavorites = false }: WallhavenBro
       </div>
 
       {data && !favoritesOnly && data.pages > 1 ? (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex shrink-0 items-center justify-between border-t bg-background pt-2 text-xs text-muted-foreground">
           <span>
             Page {data.page} of {data.pages}
           </span>
